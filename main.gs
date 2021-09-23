@@ -3,9 +3,10 @@ function doGet(){
   return template.evaluate().setXFrameOptionsMode(HtmlService.XFrameOptionsMode.ALLOWALL)
 }
 
+var planilha = SpreadsheetApp.openById("1fzAksn4JUiWXo3D8EqwKblJrNKaxgL_eLy3S8cxB_nc")
+var aba = planilha.getSheetByName("Cards")
+
 function getCards(){
-  var planilha = SpreadsheetApp.openById("1fzAksn4JUiWXo3D8EqwKblJrNKaxgL_eLy3S8cxB_nc")
-  var aba = planilha.getSheetByName("Cards")
   var dados = aba.getRange(1,1,aba.getLastRow(),11).getValues()
 
   var dataCriacao = dados.map(function(r){return r[0];});
@@ -51,6 +52,29 @@ function getCards(){
   return cards
 }
 
+function findRow(dataCriacao){
+  var dados = aba.getRange(1,1,aba.getLastRow(),1).getValues()
+
+  var datasDeCriacao = dados.map(function(r){return r[0];});
+  for(let i=0;i<datasDeCriacao.length;i++){
+    if(dataCriacao == datasDeCriacao[i].toLocaleString("pt-br"))var row = i+1
+  }
+
+  return row
+}
+
+function moveCard(dataCriacao,status,typeDate,date){
+  var row = findRow(dataCriacao)
+
+  if(typeDate == "start") var column = 10
+  else var column = 11
+
+  if(date) var data = new Date()
+  else var data = ""
+
+  aba.getRange(row,4).setValue(status)
+  aba.getRange(row,column).setValue(data) 
+}
 
 function createCalendar(infos){
   CalendarApp.getDefaultCalendar().createEvent(infos.titulo,
@@ -63,8 +87,13 @@ function createCalendar(infos){
 
 
 function salvar(infos){
-  var planilha = SpreadsheetApp.openById("1fzAksn4JUiWXo3D8EqwKblJrNKaxgL_eLy3S8cxB_nc")
-  var aba = planilha.getSheetByName("Cards")
-
-  aba.appendRow([new Date(),infos.titulo,infos.descricao,"Backlog",infos.agendado,new Date(infos.start),new Date(infos.end),infos.participantes,infos.guests])
+  aba.appendRow([new Date(),
+  infos.titulo,
+  infos.descricao,
+  "Backlog",
+  infos.agendado,
+  new Date(infos.start),
+  new Date(infos.end),
+  infos.participantes,
+  infos.guests])
 }
