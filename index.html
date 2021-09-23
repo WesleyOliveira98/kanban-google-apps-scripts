@@ -53,11 +53,11 @@
       .cartao:last-child{
         margin-bottom: 0;
       }
-      .modal-footer{
+      #addCardModal .modal-footer{
         display: flex;
         justify-content: space-between;
       }
-      .form-add-card{
+      .form-card{
         margin: 15px 0;
       }
       .displayNone{
@@ -70,7 +70,7 @@
       <div class="row">
         <div class="col-md-4">
           <div class="coluna" id="toDo">
-              <div class="heading-coluna">To do</div>
+              <div class="heading-coluna">À Fazer</div>
 
               <p class="placeholder-glow">
                 <span class="placeholder col-12"></span>
@@ -89,7 +89,7 @@
         </div>
         <div class="col-md-4">
           <div class="coluna" id="inProgress">
-            <div class="heading-coluna">In Progress</div>
+            <div class="heading-coluna">Em Andamento</div>
 
             <p class="placeholder-glow">
               <span class="placeholder col-12"></span>
@@ -103,7 +103,7 @@
         </div>
         <div class="col-md-4">
           <div class="coluna" id="done">
-            <div class="heading-coluna">Done</div>
+            <div class="heading-coluna">Concluido</div>
 
             <p class="placeholder-glow">
               <span class="placeholder col-12"></span>
@@ -126,13 +126,13 @@
             <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
           </div>
           <div class="modal-body">
-            <div class="row form-add-card">
-              <input type="text" id="cardTitulo" class="form-control" placeholder="Título do Card" oninput="validate()">
+            <div class="row form-card">
+              <input type="text" id="cardTitulo" class="form-control" placeholder="Título do Card" oninput="validate(this)">
               <div class="invalid-feedback" style="padding: 0">
                 Preencha o Titulo do Card
               </div>
             </div>
-            <div class="row form-add-card">
+            <div class="row form-card">
               <textarea type="text" id="cardDescricao" class="form-control" placeholder="Descrição do Card"></textarea>
             </div>
             <div class="form-check form-switch">
@@ -140,16 +140,16 @@
               <label class="form-check-label" for="agendarCalendario">Agendar no Calendário?</label>
             </div>
             <div id="calendar" class="displayNone">
-              <div class="row form-add-card">
+              <div class="row form-card">
                 <label style="padding-left: 0">Inicio</label>
-                <input type="datetime-local" class="form-control" id="start" onchange="validate()">
+                <input type="datetime-local" class="form-control" id="start" onchange="validate(this)">
                 <div class="invalid-feedback" style="padding: 0">
                   Selecione a Data/Hora do Inicio
                 </div>
               </div>
-              <div class="row form-add-card">
+              <div class="row form-card">
                 <label style="padding-left: 0">Fim</label>
-                <input type="datetime-local" class="form-control" id="end" onchange="validate()">
+                <input type="datetime-local" class="form-control" id="end" onchange="validate(this)">
                 <div class="invalid-feedback" style="padding: 0">
                   Selecione a Data/Hora do Final
                 </div>
@@ -159,8 +159,8 @@
                 <label class="form-check-label" for="adicionarParticipantes">Adicionar Participantes?</label>
               </div>
             </div>
-            <div class="row form-add-card displayNone">
-              <input type="text" id="guests" class="form-control" placeholder="Digite os emails dos participantes separados por vírgula" oninput="validate()">
+            <div class="row form-card displayNone">
+              <input type="text" id="guests" class="form-control" placeholder="Digite os emails dos participantes separados por vírgula" oninput="validate(this)">
               <div class="invalid-feedback" style="padding: 0">
                 Adicione a lista de e-mails dos participantes
               </div>
@@ -174,9 +174,57 @@
       </div>
     </div>
 
+
+    <div class="modal fade" id="cardViewModal" tabindex="-1" aria-labelledby="cardViewLabel" aria-hidden="true">
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <div class="modal-body">
+            <div class="row form-card">
+              <label for="cardViewTitulo" style="padding: 0">Título do Card</label>
+              <input type="text" id="cardViewTitulo" class="form-control" oninput="validate(this)">
+              <div class="invalid-feedback" style="padding: 0">
+                O Titulo do Card não pode estar vazio
+              </div>
+            </div>
+            <div class="row form-card">
+              <label for="cardViewDescricao" style="padding: 0">Descrição do Card</label>
+              <textarea type="text" id="cardViewDescricao" class="form-control"></textarea>
+            </div>
+            <div class="row form-card" id="content-view">
+            </div>
+            
+            <button type="button" class="btn btn-success" onclick="updateCard()">Salvar Alterações</button>
+            
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Voltar</button>
+            <button type="button" class="btn btn-success" data-bs-dismiss="modal">Começar</button>
+            <button type="button" class="btn btn-primary" data-bs-dismiss="modal">Mover para "À Fazer"</button>
+            <button type="button" class="btn btn-success" data-bs-dismiss="modal">Finalizar</button>
+            <button type="button" class="btn btn-primary" data-bs-dismiss="modal">Mover para "Em Andamento"</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.1/dist/js/bootstrap.bundle.min.js" integrity="sha384-/bQdsTh/da6pkI1MST/rWKFNjaCP5gBSY4sEBT38Q/9RBh9AH40zEOg7Hlq2THRZ" crossorigin="anonymous"></script>
 
     <script>
+      //Cria Modal Adicionar Card e Card View
+
+      var addCard = document.getElementById('addCardModal')
+      var cardView = document.getElementById('cardViewModal')
+
+      var addCardModal = new bootstrap.Modal(addCard, {
+        keyboard: false
+      })
+
+      var cardViewModal = new bootstrap.Modal(cardView, {
+        keyboard: false
+      })
+
+      
+
       //Na inicialização da página, é feita a busca dos cards na Planilha
       google.script.run.withSuccessHandler(updateColunas).getCards()
 
@@ -189,7 +237,16 @@
             dados.forEach((card)=>{
               var div = document.createElement("div")
               div.classList.add("cartao")
-              div.textContent = card.titulo
+              if(card.descricao) div.innerHTML = card.titulo + '<br><i class="bi bi-justify-left"></i>'
+              else div.innerHTML = card.titulo
+
+              div.addEventListener("click", function(){
+                cardView.querySelector("#cardViewTitulo").value = card.titulo
+                cardView.querySelector("#cardViewDescricao").value = card.descricao
+                cardView.querySelector("#content-view").innerHTML = ``
+                cardViewModal.show()
+              })
+              
               document.querySelector(coluna+" .cards").appendChild(div)
             })
           }
@@ -201,14 +258,6 @@
         
         document.querySelectorAll(".placeholder-glow").forEach((p)=>p.classList.add("displayNone"))
       }
-
-      //Cria Modal Adicionar Card
-
-      var addCard = document.getElementById('addCardModal')
-
-      var addCardModal = new bootstrap.Modal(addCard, {
-        keyboard: false
-      })
 
       //Visibilidade de Campos do Modal Adicionar Card
 
@@ -235,29 +284,14 @@
           guests: document.querySelector("#guests").value
         }
 
-        console.log(res)
-
         return res
       }
 
       //Função valida os campos selecionados
 
-      function validate(){
-        let res = getResponseAddCard()
-
-        if(!res.titulo) document.querySelector("#cardTitulo").classList.add("is-invalid")
-        else document.querySelector("#cardTitulo").classList.remove("is-invalid")
-
-        if(res.agendado){
-          if(!res.start) document.querySelector("#start").classList.add("is-invalid")
-          else document.querySelector("#start").classList.remove("is-invalid")
-
-          if(!res.end) document.querySelector("#end").classList.add("is-invalid")
-          else document.querySelector("#end").classList.remove("is-invalid")
-
-          if(res.participantes && !res.guests) document.querySelector("#guests").classList.add("is-invalid")
-          else document.querySelector("#guests").classList.remove("is-invalid")
-        }
+      function validate(e){
+        if(!e.value) e.classList.add("is-invalid")
+        else e.classList.remove("is-invalid")
       }
 
       //Função cria um Evento no Calendar se Selecionado, salva o card na planilha
@@ -265,18 +299,37 @@
       function adicionarCard(){
         let res = getResponseAddCard()
 
-        validate()
+        validate(document.querySelector("#cardTitulo"))
+        if(res.agendado){
+          validate(document.querySelector("#start"))
+          validate(document.querySelector("#end"))
+        }
+        else {
+          document.querySelector("#start").classList.remove("is-invalid")
+          document.querySelector("#end").classList.remove("is-invalid")
+        }
+        if(res.participantes) validate(document.querySelector("#guests"))
+        else document.querySelector("#guests").classList.remove("is-invalid")
+        
+        validate(document.querySelector("#cardTitulo"))
 
         if(addCard.querySelector(".is-invalid")) return
 
         if(res.agendado) google.script.run.createCalendar(res)
-
-        google.script.run.salvar(res)
-
+        
+        google.script.run.withSuccessHandler(updateAfterAdd).salvar(res)
+        
         limpaModalAddCard()
 
         addCardModal.hide()
         
+      }
+
+      function updateAfterAdd(){
+        document.querySelectorAll(".cards").forEach((c)=>c.innerHTML = "")
+        document.querySelectorAll(".placeholder-glow").forEach((p)=>p.classList.remove("displayNone"))
+
+        google.script.run.withSuccessHandler(updateColunas).getCards()
       }
 
       //Função limpa o Modal Adicionar Card
