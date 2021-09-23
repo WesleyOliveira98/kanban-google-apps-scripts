@@ -190,10 +190,12 @@
               <label for="cardViewDescricao" style="padding: 0">Descrição do Card</label>
               <textarea type="text" id="cardViewDescricao" class="form-control"></textarea>
             </div>
-            <div class="row form-card" id="content-view">
-            </div>
             
-            <button type="button" class="btn btn-success" onclick="updateCard()">Salvar Alterações</button>
+            <button type="button" class="btn btn-success" onclick="updateCardInfo()">Salvar Alterações</button>
+
+            <span class="displayNone"><i style="color: green;">Informaçõs do Card atualizadas com sucesso</i></span>
+
+            <div class="form-card" id="content-view"></div>
             
           </div>
           <div class="modal-footer">
@@ -241,9 +243,20 @@
               else div.innerHTML = card.titulo
 
               div.addEventListener("click", function(){
+
+                let botoes = cardView.querySelectorAll(".modal-footer button")
+                botoes.forEach((p)=>p.classList.add("displayNone"))
+                botoes[0].classList.remove("displayNone")
+                if(card.status == "Backlog") botoes[1].classList.remove("displayNone")
+                else if(card.status == "Iniciado") {
+                  botoes[2].classList.remove("displayNone")
+                  botoes[3].classList.remove("displayNone")
+                }
+                else if(card.status == "Concluido") botoes[4].classList.remove("displayNone")
+
                 cardView.querySelector("#cardViewTitulo").value = card.titulo
                 cardView.querySelector("#cardViewDescricao").value = card.descricao
-                cardView.querySelector("#content-view").innerHTML = ``
+                cardView.querySelector("#content-view").innerHTML = `<i>Card criado em <strong id="dataCriacao">${card.dataCriacao}</strong></i>`
                 cardViewModal.show()
               })
               
@@ -258,6 +271,31 @@
         
         document.querySelectorAll(".placeholder-glow").forEach((p)=>p.classList.add("displayNone"))
       }
+
+      //Atualiza Lista de Cards
+
+      function updateCardList(){
+        document.querySelectorAll(".cards").forEach((c)=>c.innerHTML = "")
+        document.querySelectorAll(".placeholder-glow").forEach((p)=>p.classList.remove("displayNone"))
+
+        google.script.run.withSuccessHandler(updateColunas).getCards()
+      }
+
+      //Adicionando Event Listener nos Botões do Card View para chamar funcções do gs e após atualizando a card list
+
+      function moveCard(card,status,typeDate,date){
+        card.addEventListener("click", function(){
+          let dataCriacao = cardView.querySelector("#dataCriacao").textContent
+          google.script.run.withSuccessHandler(updateCardList).moveCard(dataCriacao,status,typeDate,date)
+        })
+      }
+
+      var botoes = cardView.querySelectorAll(".modal-footer button")
+      moveCard(botoes[1],"Iniciado","start",true)
+      moveCard(botoes[2],"Backlog","start",false)
+      moveCard(botoes[3],"Concluido","end",true)
+      moveCard(botoes[4],"Iniciado","end",false)
+      
 
       //Visibilidade de Campos do Modal Adicionar Card
 
@@ -317,19 +355,12 @@
 
         if(res.agendado) google.script.run.createCalendar(res)
         
-        google.script.run.withSuccessHandler(updateAfterAdd).salvar(res)
+        google.script.run.withSuccessHandler(updateCardList).salvar(res)
         
         limpaModalAddCard()
 
         addCardModal.hide()
         
-      }
-
-      function updateAfterAdd(){
-        document.querySelectorAll(".cards").forEach((c)=>c.innerHTML = "")
-        document.querySelectorAll(".placeholder-glow").forEach((p)=>p.classList.remove("displayNone"))
-
-        google.script.run.withSuccessHandler(updateColunas).getCards()
       }
 
       //Função limpa o Modal Adicionar Card
