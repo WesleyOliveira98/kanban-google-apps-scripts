@@ -87,13 +87,34 @@ function createCalendar(infos){
 
 
 function salvar(infos){
+  let inicioEvento = ""
+  let fimEvento = ""
+
+  if(infos.start) inicioEvento = new Date(infos.start)
+  if(infos.end) fimEvento = new Date(infos.end)
+
   aba.appendRow([new Date(),
   infos.titulo,
   infos.descricao,
   "Backlog",
   infos.agendado,
-  new Date(infos.start),
-  new Date(infos.end),
+  inicioEvento,
+  fimEvento,
   infos.participantes,
   infos.guests])
 }
+
+
+function updateCardInfo(infos){
+  row = findRow(infos.dataCriacao)
+
+  aba.getRange(row,2).setValue(infos.titulo)
+  aba.getRange(row,3).setValue(infos.descricao)
+}
+
+
+function deleteCard(dataCriacao){
+  row = findRow(dataCriacao)
+  aba.deleteRow(row)
+}
+

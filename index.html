@@ -178,6 +178,10 @@
     <div class="modal fade" id="cardViewModal" tabindex="-1" aria-labelledby="cardViewLabel" aria-hidden="true">
       <div class="modal-dialog">
         <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title" id="addCardLabel"><strong></strong></h5>
+            <button type="button" class="btn btn-danger" data-bs-dismiss="modal" aria-label="Close" onclick="deleteCard()"><i class="bi bi-trash-fill"></i></button>
+          </div>
           <div class="modal-body">
             <div class="row form-card">
               <label for="cardViewTitulo" style="padding: 0">Título do Card</label>
@@ -254,9 +258,22 @@
                 }
                 else if(card.status == "Concluido") botoes[4].classList.remove("displayNone")
 
+                cardView.querySelector(".modal-title strong").textContent = card.titulo
                 cardView.querySelector("#cardViewTitulo").value = card.titulo
                 cardView.querySelector("#cardViewDescricao").value = card.descricao
-                cardView.querySelector("#content-view").innerHTML = `<i>Card criado em <strong id="dataCriacao">${card.dataCriacao}</strong></i>`
+
+                let html = `<i>Card criado em <strong id="dataCriacao">${card.dataCriacao}</strong></i>`
+                if(card.inicio) html += `<br><i>Tarefa iniciada em <strong>${card.inicio}</strong></i>`
+                if(card.fim) html += `<br><i>Tarefa finalizada em <strong>${card.fim}</strong></i>`
+                if(card.agendado) html += `<br><br><i>Evento criado no calendário inicia em <strong>${card.inicioEvento}</strong> e encerra em <strong>${card.fimEvento}</strong></i>`
+                if(card.participantes){
+                  html += `<br><br><span>Lista de Participantes:</span><br><ul>`
+                  let guests = card.listaParticipantes.split(",")
+                  guests.forEach((guest)=>html += `<li>${guest}</li>`)
+                  html += `</ul>`
+                }
+                cardView.querySelector("#content-view").innerHTML = html
+
                 cardViewModal.show()
               })
               
@@ -295,7 +312,27 @@
       moveCard(botoes[2],"Backlog","start",false)
       moveCard(botoes[3],"Concluido","end",true)
       moveCard(botoes[4],"Iniciado","end",false)
+
+
+      //Função para atualizar informações do card
+
+      function updateCardInfo(){
+        let infos = {
+          dataCriacao: cardView.querySelector("#dataCriacao").textContent,
+          titulo: cardView.querySelector("#cardViewTitulo").value,
+          descricao: cardView.querySelector("#cardViewDescricao").value
+        }
+        cardView.querySelector(".modal-title strong").textContent = infos.titulo
+
+        google.script.run.withSuccessHandler(updateCardList).updateCardInfo(infos)
+      }
+
+      //Função para deletrar um card
       
+      function deleteCard(){
+        let dataCriacao = cardView.querySelector("#dataCriacao").textContent
+        google.script.run.withSuccessHandler(updateCardList).deleteCard(dataCriacao)
+      }
 
       //Visibilidade de Campos do Modal Adicionar Card
 
