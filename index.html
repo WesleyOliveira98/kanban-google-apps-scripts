@@ -180,7 +180,7 @@
         <div class="modal-content">
           <div class="modal-header">
             <h5 class="modal-title" id="addCardLabel"><strong></strong></h5>
-            <button type="button" class="btn btn-danger" data-bs-dismiss="modal" aria-label="Close" onclick="deleteCard()"><i class="bi bi-trash-fill"></i></button>
+            <button type="button" class="btn btn-danger" data-bs-dismiss="modal" aria-label="Close" id="deleteCardBtn" onclick="confirmDeleteModal.show()"><i class="bi bi-trash-fill"></i></button>
           </div>
           <div class="modal-body">
             <div class="row form-card">
@@ -203,11 +203,30 @@
             
           </div>
           <div class="modal-footer">
-            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Voltar</button>
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" aria-label="Close">Voltar</button>
             <button type="button" class="btn btn-success" data-bs-dismiss="modal">Começar</button>
             <button type="button" class="btn btn-primary" data-bs-dismiss="modal">Mover para "À Fazer"</button>
             <button type="button" class="btn btn-success" data-bs-dismiss="modal">Finalizar</button>
             <button type="button" class="btn btn-primary" data-bs-dismiss="modal">Mover para "Em Andamento"</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="modal fade" id="confirmDeleteModal" tabindex="-1" aria-labelledby="confirmDeleteModalLabel" aria-hidden="true">
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title" id="confirmDeleteModalLabel"><strong>Deletar Card</strong></h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+          </div>
+          <div class="modal-body">
+            <span class="displayNone" id="deleteCardDate"></span>
+            <span>Confirma a exclusão do card "<span id="deleteCardTitle"></span>"?</span>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Voltar</button>
+            <button type="button" class="btn btn-danger" data-bs-dismiss="modal" onclick="deleteCard()">Excluir</button>
           </div>
         </div>
       </div>
@@ -220,20 +239,16 @@
 
       var addCard = document.getElementById('addCardModal')
       var cardView = document.getElementById('cardViewModal')
+      var confirmDelete = document.getElementById('confirmDeleteModal')
 
-      var addCardModal = new bootstrap.Modal(addCard, {
-        keyboard: false
-      })
-
-      var cardViewModal = new bootstrap.Modal(cardView, {
-        keyboard: false
-      })
-
-      
+      var addCardModal = new bootstrap.Modal(addCard, { keyboard: false })
+      var cardViewModal = new bootstrap.Modal(cardView, { keyboard: false })
+      var confirmDeleteModal = new bootstrap.Modal(confirmDelete, { keyboard: false })
 
       //Na inicialização da página, é feita a busca dos cards na Planilha
       google.script.run.withSuccessHandler(updateColunas).getCards()
 
+      //Função Update Colunas, zera o html de todas colunas e retorna com com os dados atuais
       function updateColunas(cards){
         console.log(cards)
 
@@ -243,8 +258,15 @@
             dados.forEach((card)=>{
               var div = document.createElement("div")
               div.classList.add("cartao")
-              if(card.descricao) div.innerHTML = card.titulo + '<br><i class="bi bi-justify-left"></i>'
-              else div.innerHTML = card.titulo
+
+              let cardHTML = card.titulo
+              if(card.descricao || card.agendado || card.participantes){
+                cardHTML += '<br>'
+                if(card.descricao) cardHTML += '<i class="bi bi-justify-left" style="margin-right:4px"></i>'
+                if(card.agendado) cardHTML += '<i class="bi bi-calendar-date" style="margin-right:4px"></i>'
+                if(card.participantes) cardHTML += '<i class="bi bi-people-fill"></i>'
+              }
+              div.innerHTML = cardHTML
 
               div.addEventListener("click", function(){
 
@@ -328,9 +350,14 @@
       }
 
       //Função para deletrar um card
+
+      document.querySelector("#deleteCardBtn").addEventListener("click", function(){
+        confirmDelete.querySelector("#deleteCardDate").textContent = cardView.querySelector("#dataCriacao").textContent
+        confirmDelete.querySelector("#deleteCardTitle").textContent = cardView.querySelector("#cardViewTitulo").value
+      })
       
       function deleteCard(){
-        let dataCriacao = cardView.querySelector("#dataCriacao").textContent
+        let dataCriacao = confirmDelete.querySelector("#deleteCardDate").textContent
         google.script.run.withSuccessHandler(updateCardList).deleteCard(dataCriacao)
       }
 
