@@ -4,16 +4,22 @@
     <meta charset="UTF-8">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.1/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-F3w7mX95PdgyTmZZMECAngseQB83DfGTowi0iMjiWaeVhAn4FJkqJByhZMI3AhiU" crossorigin="anonymous">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.5.0/font/bootstrap-icons.css">
+    <link rel="stylesheet" type="text/css" href="//cdn.jsdelivr.net/npm/slick-carousel@1.8.1/slick/slick.css"/>
+
     <style>
       body{
         margin: 0 auto;
+        width: 100%;
         height: 100vh;
+        overflow: hidden;
+        background-size: 100% 100vh;
+        display: flex;
       }
       .col-md-4{
         padding: 15px;
       }
       .coluna{
-        background-color: #cacaca;
+        background-color: rgba(246,248,250,0.4);
         padding: 10px;
         border-radius: 3px;
         box-shadow: 0 0 .3em black;
@@ -31,8 +37,8 @@
         border: none;
         border-radius: 5px;
       }
-      .btn-add-card button:hover{
-        background: gray;
+      .btn-add-card button:hover,aside h1:hover{
+        background: #c1c1c1;
       }
       .cards{
         overflow: auto;
@@ -46,6 +52,7 @@
         padding: 10px;
         border-radius: 5px;
         overflow: hidden;
+        cursor: pointer;
       }
       .cartao:first-child{
         margin-top: 0;
@@ -63,14 +70,49 @@
       .displayNone{
         display: none;
       }
+      aside{
+        background-color: rgba(246,248,250,0.4);
+        width: 60px;
+        height: 100vh;
+        text-align: center;
+        padding: 5px;
+      }
+      aside h1{
+        border-radius: 4px;
+      }
+      .menu-selected{
+        background: #c1c1c1;
+        box-shadow: 0 0 .2em black;
+      }
+      .list-temas{
+        width: 30%;
+        height: 90px;
+        padding: 10px;
+      }
+      .list-temas img{
+        width: 100%;
+        height: 100%;
+      }
+      .temas{
+        margin: 0;
+        padding: 0;
+        width: 100%;
+        list-style: none;
+        display: flex;
+        flex-direction: row;
+        flex-wrap: wrap;
+      }
+      .tema-active{
+        box-shadow: 0 0 .4em green;
+      }
     </style>
   </head>
-  <body>
+  <body style='background:<?!= bg ?>;background-size: 100% 100vh;'>
     <div class="container">
       <div class="row">
         <div class="col-md-4">
           <div class="coluna" id="toDo">
-              <div class="heading-coluna">À Fazer</div>
+              <div class="heading-coluna"><strong>À Fazer</strong></div>
 
               <p class="placeholder-glow">
                 <span class="placeholder col-12"></span>
@@ -89,7 +131,7 @@
         </div>
         <div class="col-md-4">
           <div class="coluna" id="inProgress">
-            <div class="heading-coluna">Em Andamento</div>
+            <div class="heading-coluna"><strong>Em Andamento</strong></div>
 
             <p class="placeholder-glow">
               <span class="placeholder col-12"></span>
@@ -103,7 +145,7 @@
         </div>
         <div class="col-md-4">
           <div class="coluna" id="done">
-            <div class="heading-coluna">Concluido</div>
+            <div class="heading-coluna"><strong>Concluido</strong></div>
 
             <p class="placeholder-glow">
               <span class="placeholder col-12"></span>
@@ -117,6 +159,12 @@
         </div>
       </div>
     </div>
+
+    <aside>
+      <h1 class="menu-item menu-selected" title="Kanban" id="Kanban"><i class="bi bi-kanban-fill"></i></h1>
+      <h1 class="menu-item" title="Temas" id="Temas"><i class="bi bi-palette-fill"></i></h1>
+      <h1 class="menu-item" title="Estatísticas" id="Estatísticas"><i class="bi bi-graph-up"></i></h1>
+    </aside>
 
     <div class="modal fade" id="addCardModal" tabindex="-1" aria-labelledby="addCardLabel" aria-hidden="true">
       <div class="modal-dialog">
@@ -232,18 +280,46 @@
       </div>
     </div>
 
+    <div class="modal fade" id="editThemeModal" tabindex="-1" aria-labelledby="editThemeModalLabel" aria-hidden="true">
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title" id="editThemeModalLabel"><strong>Editar Tema</strong></h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+          </div>
+          <div class="modal-body">
+            <span>Selecione um tema de sua preferência</span>
+            <p class="placeholder-glow">
+              <span class="placeholder col-12"></span>
+              <span class="placeholder col-12"></span>
+              <span class="placeholder col-10"></span>
+            </p>
+            <ul class="temas"></ul>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Voltar</button>
+            <button type="button" class="btn btn-success" data-bs-dismiss="modal" onclick="salvarTema()">Salvar</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    
+    
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.1/dist/js/bootstrap.bundle.min.js" integrity="sha384-/bQdsTh/da6pkI1MST/rWKFNjaCP5gBSY4sEBT38Q/9RBh9AH40zEOg7Hlq2THRZ" crossorigin="anonymous"></script>
 
-    <script>
+    <script type="text/javascript">
       //Cria Modal Adicionar Card e Card View
 
-      var addCard = document.getElementById('addCardModal')
-      var cardView = document.getElementById('cardViewModal')
-      var confirmDelete = document.getElementById('confirmDeleteModal')
+      var addCard = document.getElementById('addCardModal'),
+      cardView = document.getElementById('cardViewModal'),
+      confirmDelete = document.getElementById('confirmDeleteModal'),
+      editTheme = document.getElementById('editThemeModal')
 
-      var addCardModal = new bootstrap.Modal(addCard, { keyboard: false })
-      var cardViewModal = new bootstrap.Modal(cardView, { keyboard: false })
-      var confirmDeleteModal = new bootstrap.Modal(confirmDelete, { keyboard: false })
+      var addCardModal = new bootstrap.Modal(addCard, { keyboard: false }),
+      cardViewModal = new bootstrap.Modal(cardView, { keyboard: false }),
+      confirmDeleteModal = new bootstrap.Modal(confirmDelete, { keyboard: false }),
+      editThemeModal = new bootstrap.Modal(editTheme, { keyboard: false })
 
       //Na inicialização da página, é feita a busca dos cards na Planilha
       google.script.run.withSuccessHandler(updateColunas).getCards()
@@ -439,6 +515,75 @@
         document.querySelector("#guests").value = ""
         document.querySelector("#calendar").classList.add("displayNone")
         document.querySelector("#guests").parentNode.classList.add("displayNone")
+      }
+
+
+      //Função para personalizar estilo do menu
+
+      document.querySelectorAll(".menu-item").forEach((menuItem)=>{
+        menuItem.addEventListener("click",function(){
+          document.querySelectorAll(".menu-item").forEach((item)=>{item.classList.remove("menu-selected")})
+          menuItem.classList.add("menu-selected")
+        })
+      })
+
+
+      // Funções para personalizar o tema da aplicação
+
+      document.querySelector("#Temas").addEventListener("click",function (){
+        document.querySelector(".temas").innerHTML = ""
+        editTheme.querySelector(".placeholder-glow").classList.remove("displayNone")
+        editThemeModal.show()
+        google.script.run.withSuccessHandler(getBackgrounds).getBackgroundList()
+      })
+
+      function getBackgrounds(bgs){
+        console.log(bgs)
+        editTheme.querySelector(".placeholder-glow").classList.add("displayNone")
+        
+        bgs.forEach((background)=>{
+          let url = background.bg.split('"'),
+          li = document.createElement("li")
+
+          li.classList.add("list-temas")
+
+          if(background.active) li.classList.add("tema-active")
+
+          li.addEventListener("click", function(e){
+            let body = document.querySelector("body")
+            body.style.background = background.bg
+            body.style.backgroundSize = "100% 100%"
+            document.querySelectorAll(".list-temas").forEach((item)=>item.classList.remove("tema-active"))
+            li.classList.add("tema-active")
+          })
+
+          if(url.length > 1){
+            let img = document.createElement("img");
+            img.src = url[1]
+            li.appendChild(img)
+          }else{
+            let img = document.createElement("img")
+            img.style.background = background.bg
+            li.appendChild(img)
+          }
+
+          let span = document.createElement("span")
+          span.classList.add("displayNone")
+          span.textContent = background.bg
+          li.appendChild(span)
+
+          document.querySelector(".temas").appendChild(li)
+        })
+      }
+
+      //Função para salvar o tema ativo
+
+      function salvarTema(){
+        document.querySelector(".menu-selected").classList.remove("menu-selected")
+        document.querySelector(".menu-item").classList.add("menu-selected")
+
+        let temaAtivo = document.querySelector(".tema-active span").textContent
+        google.script.run.setBackground(temaAtivo)
       }
       
       

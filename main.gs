@@ -1,5 +1,8 @@
 function doGet(){
+  var bg = getBackgroundActive()
+
   var template = HtmlService.createTemplateFromFile('index')
+  template.bg = bg
   return template.evaluate().setXFrameOptionsMode(HtmlService.XFrameOptionsMode.ALLOWALL)
 }
 
@@ -116,5 +119,50 @@ function updateCardInfo(infos){
 function deleteCard(dataCriacao){
   row = findRow(dataCriacao)
   aba.deleteRow(row)
+}
+
+
+function getBackgroundActive(){
+  let aba = planilha.getSheetByName("Temas"),
+  dados = aba.getRange(1,1,aba.getLastRow(),2).getValues(),
+  background = "white"
+
+  var bg = dados.map(function(r){return r[0];});
+  var active = dados.map(function(r){return r[1];});
+
+  for(let i=0;i<bg.length;i++){
+    if(active[i]) background = bg[i]
+  }
+
+  return background
+}
+
+
+function getBackgroundList(){
+  let aba = planilha.getSheetByName("Temas"),
+  dados = aba.getRange(1,1,aba.getLastRow(),2).getValues(),
+  res = [];
+
+  dados.forEach((dado)=>{
+    let obj = {
+      bg: dado[0],
+      active: dado[1]
+    }
+    if(dados.indexOf(dado)>0)res.push(obj)
+  })
+
+  return res
+}
+
+function setBackground(bgActive){
+  let aba = planilha.getSheetByName("Temas"),
+  dados = aba.getRange(1,1,aba.getLastRow(),1).getValues()
+
+  var bg = dados.map(function(r){return r[0];});
+
+  for(let i=1;i<bg.length;i++){
+    if(bg[i] == bgActive) aba.getRange(i+1,2).setValue(true)
+    else aba.getRange(i+1,2).setValue(false)
+  }
 }
 
