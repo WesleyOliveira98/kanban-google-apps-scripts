@@ -166,3 +166,14 @@ function setBackground(bgActive){
   }
 }
 
+function deleteBackground(bg){
+  let aba = planilha.getSheetByName("Temas"),
+  dados = aba.getRange(1,1,aba.getLastRow(),1).getValues()
+
+  var bgs = dados.map(function(r){return r[0];});
+
+  for(let i=1;i<bgs.length;i++){
+    if(bgs[i] == bg) aba.deleteRow(i+1)
+  }
+}
+

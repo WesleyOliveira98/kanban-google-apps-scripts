@@ -88,10 +88,17 @@
         width: 30%;
         height: 90px;
         padding: 10px;
+        display: flex;
+        justify-content: right;
       }
       .list-temas img{
         width: 100%;
         height: 100%;
+      }
+      .list-temas i{
+        position: absolute;
+        background: rgba(246,248,250,0.4);
+        margin: 2px;
       }
       .temas{
         margin: 0;
@@ -298,6 +305,7 @@
           </div>
           <div class="modal-footer">
             <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Voltar</button>
+            <button type="button" class="btn btn-danger" onclick="apagarTema()">Apagar</button>
             <button type="button" class="btn btn-success" data-bs-dismiss="modal" onclick="salvarTema()">Salvar</button>
           </div>
         </div>
@@ -546,10 +554,26 @@
           li = document.createElement("li")
 
           li.classList.add("list-temas")
+          
+          let i = document.createElement("i")
+          i.classList.add("bi")
+          i.classList.add("bi-trash-fill")
+          i.classList.add("displayNone")
+          i.addEventListener("click",function(e){
+            let pai = i.parentNode
+            google.script.run.deleteBackground(pai.querySelector("span").textContent)
+            pai.parentNode.removeChild(pai)
+          })
+          li.appendChild(i)
 
           if(background.active) li.classList.add("tema-active")
 
-          li.addEventListener("click", function(e){
+          let img = document.createElement("img");
+
+          if(url.length > 1) img.src = url[1]
+          else img.style.background = background.bg
+
+          img.addEventListener("click", function(e){
             let body = document.querySelector("body")
             body.style.background = background.bg
             body.style.backgroundSize = "100% 100%"
@@ -557,15 +581,7 @@
             li.classList.add("tema-active")
           })
 
-          if(url.length > 1){
-            let img = document.createElement("img");
-            img.src = url[1]
-            li.appendChild(img)
-          }else{
-            let img = document.createElement("img")
-            img.style.background = background.bg
-            li.appendChild(img)
-          }
+          li.appendChild(img)
 
           let span = document.createElement("span")
           span.classList.add("displayNone")
@@ -584,6 +600,10 @@
 
         let temaAtivo = document.querySelector(".tema-active span").textContent
         google.script.run.setBackground(temaAtivo)
+      }
+
+      function apagarTema(){
+        document.querySelectorAll(".list-temas i").forEach((i)=>i.classList.remove("displayNone"))
       }
       
       
