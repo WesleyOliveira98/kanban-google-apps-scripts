@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.1/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-F3w7mX95PdgyTmZZMECAngseQB83DfGTowi0iMjiWaeVhAn4FJkqJByhZMI3AhiU" crossorigin="anonymous">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.5.0/font/bootstrap-icons.css">
+
+    <?!= include("css") ?>
+  </head>
+  <body style='background:<?!= bg ?>;background-size: 100% 100vh;'>
+    
+    <div class="container">
+      <div class="row">
+        <div class="col-md-4">
+          <div class="coluna" id="toDo">
+              <div class="heading-coluna"><strong>À Fazer</strong></div>
+
+              <p class="placeholder-glow">
+                <span class="placeholder col-12"></span>
+                <span class="placeholder col-10"></span>
+                <span class="placeholder col-8"></span>
+              </p>
+
+              <div class="cards">
+              </div>
+
+              <div class="btn-add-card">
+                <button type="button" onclick="addCardModal.show()"><i class="bi bi-plus"></i>Add Card</button>
+              </div>
+
+          </div>
+        </div>
+        <div class="col-md-4">
+          <div class="coluna" id="inProgress">
+            <div class="heading-coluna"><strong>Em Andamento</strong></div>
+
+            <p class="placeholder-glow">
+              <span class="placeholder col-12"></span>
+              <span class="placeholder col-10"></span>
+              <span class="placeholder col-8"></span>
+            </p>
+
+            <div class="cards">
+            </div>
+          </div>
+        </div>
+        <div class="col-md-4">
+          <div class="coluna" id="done">
+            <div class="heading-coluna"><strong>Concluido</strong></div>
+
+            <p class="placeholder-glow">
+              <span class="placeholder col-12"></span>
+              <span class="placeholder col-10"></span>
+              <span class="placeholder col-8"></span>
+            </p>
+
+            <div class="cards">
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <aside>
+      <h1 class="menu-item menu-selected" title="Kanban" id="Kanban"><i class="bi bi-kanban-fill"></i></h1>
+      <h1 class="menu-item" title="Temas" id="Temas"><i class="bi bi-palette-fill"></i></h1>
+      <h1 class="menu-item" title="Estatísticas" id="Estatísticas"><i class="bi bi-graph-up"></i></h1>
+    </aside>
+
+    <div class="modal fade" id="addCardModal" tabindex="-1" aria-labelledby="addCardLabel" aria-hidden="true">
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title" id="addCardLabel"><strong>Adicionar Card</strong></h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+          </div>
+          <div class="modal-body">
+            <div class="row form-card">
+              <input type="text" id="cardTitulo" class="form-control" placeholder="Título do Card" oninput="validate(this)">
+              <div class="invalid-feedback" style="padding: 0">
+                Preencha o Titulo do Card
+              </div>
+            </div>
+            <div class="row form-card">
+              <textarea type="text" id="cardDescricao" class="form-control" placeholder="Descrição do Card"></textarea>
+            </div>
+            <div class="form-check form-switch">
+              <input class="form-check-input" type="checkbox" id="agendarCalendario">
+              <label class="form-check-label" for="agendarCalendario">Agendar no Calendário?</label>
+            </div>
+            <div id="calendar" class="displayNone">
+              <div class="row form-card">
+                <label style="padding-left: 0">Inicio</label>
+                <input type="datetime-local" class="form-control" id="start" onchange="validate(this)">
+                <div class="invalid-feedback" style="padding: 0">
+                  Selecione a Data/Hora do Inicio
+                </div>
+              </div>
+              <div class="row form-card">
+                <label style="padding-left: 0">Fim</label>
+                <input type="datetime-local" class="form-control" id="end" onchange="validate(this)">
+                <div class="invalid-feedback" style="padding: 0">
+                  Selecione a Data/Hora do Final
+                </div>
+              </div>
+              <div class="form-check form-switch">
+                <input class="form-check-input" type="checkbox" id="adicionarParticipantes">
+                <label class="form-check-label" for="adicionarParticipantes">Adicionar Participantes?</label>
+              </div>
+            </div>
+            <div class="row form-card displayNone">
+              <input type="text" id="guests" class="form-control" placeholder="Digite os emails dos participantes separados por vírgula" oninput="validate(this)">
+              <div class="invalid-feedback" style="padding: 0">
+                Adicione a lista de e-mails dos participantes
+              </div>
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Voltar</button>
+            <button type="button" class="btn btn-success" onclick="adicionarCard()">Salvar</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+
+    <div class="modal fade" id="cardViewModal" tabindex="-1" aria-labelledby="cardViewLabel" aria-hidden="true">
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title" id="addCardLabel"><strong></strong></h5>
+            <button type="button" class="btn btn-danger" data-bs-dismiss="modal" aria-label="Close" id="deleteCardBtn" onclick="confirmDeleteModal.show()"><i class="bi bi-trash-fill"></i></button>
+          </div>
+          <div class="modal-body">
+            <div class="row form-card">
+              <label for="cardViewTitulo" style="padding: 0">Título do Card</label>
+              <input type="text" id="cardViewTitulo" class="form-control" oninput="validate(this)">
+              <div class="invalid-feedback" style="padding: 0">
+                O Titulo do Card não pode estar vazio
+              </div>
+            </div>
+            <div class="row form-card">
+              <label for="cardViewDescricao" style="padding: 0">Descrição do Card</label>
+              <textarea type="text" id="cardViewDescricao" class="form-control"></textarea>
+            </div>
+            
+            <button type="button" class="btn btn-success" onclick="updateCardInfo()">Salvar Alterações</button>
+
+            <span class="displayNone"><i style="color: green;">Informaçõs do Card atualizadas com sucesso</i></span>
+
+            <div class="form-card" id="content-view"></div>
+            
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" aria-label="Close">Voltar</button>
+            <button type="button" class="btn btn-success" data-bs-dismiss="modal">Começar</button>
+            <button type="button" class="btn btn-primary" data-bs-dismiss="modal">Mover para "À Fazer"</button>
+            <button type="button" class="btn btn-success" data-bs-dismiss="modal">Finalizar</button>
+            <button type="button" class="btn btn-primary" data-bs-dismiss="modal">Mover para "Em Andamento"</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="modal fade" id="confirmDeleteModal" tabindex="-1" aria-labelledby="confirmDeleteModalLabel" aria-hidden="true">
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title" id="confirmDeleteModalLabel"><strong>Deletar Card</strong></h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+          </div>
+          <div class="modal-body">
+            <span class="displayNone" id="deleteCardDate"></span>
+            <span>Confirma a exclusão do card "<span id="deleteCardTitle"></span>"?</span>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Voltar</button>
+            <button type="button" class="btn btn-danger" data-bs-dismiss="modal" onclick="deleteCard()">Excluir</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="modal fade" id="editThemeModal" tabindex="-1" aria-labelledby="editThemeModalLabel" aria-hidden="true">
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title" id="editThemeModalLabel"><strong>Editar Tema</strong></h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close" onclick="backToKanBam()"></button>
+          </div>
+          <div class="modal-body">
+            <span>Selecione um tema de sua preferência</span>
+            <p class="placeholder-glow">
+              <span class="placeholder col-12"></span>
+              <span class="placeholder col-12"></span>
+              <span class="placeholder col-10"></span>
+            </p>
+            <ul class="temas"></ul>
+            <div class="novo-tema displayNone" align="center">
+              <div>
+                <label>Adicionar novo Tema</label>
+              </div>
+              <div class="btn-group" role="group">
+                <button type="button" class="btn btn-secondary" id="cor">Cor</button>
+                <button type="button" class="btn btn-secondary" id="url" >URL</button>
+              </div>
+              <div>
+                <input type="color" class="form-control form-control-color" title="Escolha uma Cor" oninput="updatePreview(this)">
+              </div>
+              <div>
+                <input type="text" class="form-control displayNone" placeholder="Digite a URL da Imagem" oninput="updatePreview(this)">
+              </div>
+              <span>Clique abaixo para testar</span>
+              <div class="list-temas previewTheme" style="background: black" title="Clique para testar">
+                <span class="displayNone">black</span>
+              </div>
+              
+              <div>
+                <button type="button" class="btn btn-warning" onclick="criarTema(false)">Somente Salvar</button>
+                <button type="button" class="btn btn-success" onclick="criarTema(true)">Salvar e Usar</button>
+              </div>
+            </div>
+            
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" onclick="backToKanBam()">Voltar</button>
+            <button type="button" class="btn btn-danger" onclick="apagarTema()">Apagar</button>
+            <button type="button" class="btn btn-success" data-bs-dismiss="modal" onclick="salvarTema()">Salvar Alterações</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="modal fade" id="statsModal" tabindex="-1" aria-labelledby="statsModalLabel" aria-hidden="true">
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title" id="statsModalLabel"><strong>Estatísticas</strong></h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close" onclick="backToKanBam()"></button>
+          </div>
+          <div class="modal-body">
+            <h6 class="placeholder-glow">
+              <span class="placeholder col-12"></span>
+              <span class="placeholder col-10"></span>
+              <span class="placeholder col-8"></span>
+            </h6>
+            <div class="displayNone">
+              <h6 id="cardCriados"></h6>
+              <h6 id="cardIniciados"></h6>
+              <h6 id="cardFinalizados"></h6>
+              <h6 id="eventosCriados"></h6>
+              <h6 id="eventosWithGuestsCriados"></h6>
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" onclick="backToKanBam()">Voltar</button>
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.1/dist/js/bootstrap.bundle.min.js" integrity="sha384-/bQdsTh/da6pkI1MST/rWKFNjaCP5gBSY4sEBT38Q/9RBh9AH40zEOg7Hlq2THRZ" crossorigin="anonymous"></script>
+
+    <?!= include("js") ?>
+    
+  </body>
+</html>

@@ -1,0 +1,411 @@
+<script type="text/javascript">
+    //Ativa todos os Modals da aplicação
+
+    var addCard = document.getElementById('addCardModal'),
+    cardView = document.getElementById('cardViewModal'),
+    confirmDelete = document.getElementById('confirmDeleteModal'),
+    editTheme = document.getElementById('editThemeModal'),
+    stats = document.getElementById('statsModal')
+
+    var addCardModal = new bootstrap.Modal(addCard, { keyboard: false }),
+    cardViewModal = new bootstrap.Modal(cardView, { keyboard: false }),
+    confirmDeleteModal = new bootstrap.Modal(confirmDelete, { keyboard: false }),
+    editThemeModal = new bootstrap.Modal(editTheme, { keyboard: false, backdrop: 'static' }),
+    statsModal = new bootstrap.Modal(stats, { keyboard: false, backdrop: 'static' })
+
+    //Função para personalizar estilo do menu
+
+    document.querySelectorAll(".menu-item").forEach((menuItem)=>{
+      menuItem.addEventListener("click",function(){
+        document.querySelectorAll(".menu-item").forEach((item)=>{item.classList.remove("menu-selected")})
+        menuItem.classList.add("menu-selected")
+      })
+    })
+
+    function backToKanBam(){
+      document.querySelector(".menu-selected").classList.remove("menu-selected")
+      document.querySelector(".menu-item").classList.add("menu-selected")
+    }
+
+    //Na inicialização da página, é feita a busca dos cards na Planilha
+    google.script.run.withSuccessHandler(updateColunas).getCards()
+
+    //Função Update Colunas, zera o html de todas colunas e retorna com com os dados atuais
+    function updateColunas(cards){
+      console.log(cards)
+
+      let preencheColunas = (dados, coluna) =>{
+        if(dados.length == 0) return
+        else {
+          dados.forEach((card)=>{
+            var div = document.createElement("div")
+            div.classList.add("cartao")
+
+            let cardHTML = card.titulo
+            if(card.descricao || card.agendado || card.participantes){
+              cardHTML += '<br>'
+              if(card.descricao) cardHTML += '<i class="bi bi-justify-left" style="margin-right:4px"></i>'
+              if(card.agendado) cardHTML += '<i class="bi bi-calendar-date" style="margin-right:4px"></i>'
+              if(card.participantes) cardHTML += '<i class="bi bi-people-fill"></i>'
+            }
+            div.innerHTML = cardHTML
+
+            div.addEventListener("click", function(){
+
+              let botoes = cardView.querySelectorAll(".modal-footer button")
+              botoes.forEach((p)=>p.classList.add("displayNone"))
+              botoes[0].classList.remove("displayNone")
+              if(card.status == "Backlog") botoes[1].classList.remove("displayNone")
+              else if(card.status == "Iniciado") {
+                botoes[2].classList.remove("displayNone")
+                botoes[3].classList.remove("displayNone")
+              }
+              else if(card.status == "Concluido") botoes[4].classList.remove("displayNone")
+
+              cardView.querySelector(".modal-title strong").textContent = card.titulo
+              cardView.querySelector("#cardViewTitulo").value = card.titulo
+              cardView.querySelector("#cardViewDescricao").value = card.descricao
+
+              let html = `<i>Card criado em <strong id="dataCriacao">${card.dataCriacao}</strong></i>`
+              if(card.inicio) html += `<br><i>Tarefa iniciada em <strong>${card.inicio}</strong></i>`
+              if(card.fim) html += `<br><i>Tarefa finalizada em <strong>${card.fim}</strong></i>`
+              if(card.agendado) html += `<br><br><i>Evento criado no calendário inicia em <strong>${card.inicioEvento}</strong> e encerra em <strong>${card.fimEvento}</strong></i>`
+              if(card.participantes){
+                html += `<br><br><span>Lista de Participantes:</span><br><ul>`
+                let guests = card.listaParticipantes.split(",")
+                guests.forEach((guest)=>html += `<li>${guest}</li>`)
+                html += `</ul>`
+              }
+              cardView.querySelector("#content-view").innerHTML = html
+
+              cardViewModal.show()
+            })
+            
+            document.querySelector(coluna+" .cards").appendChild(div)
+          })
+        }
+      }
+
+      preencheColunas(cards.backlog,"#toDo")
+      preencheColunas(cards.iniciados,"#inProgress")
+      preencheColunas(cards.concluidos,"#done")
+      
+      document.querySelectorAll(".placeholder-glow").forEach((p)=>p.classList.add("displayNone"))
+    }
+
+    //Atualiza Lista de Cards
+
+    function updateCardList(){
+      document.querySelectorAll(".cards").forEach((c)=>c.innerHTML = "")
+      document.querySelectorAll(".placeholder-glow").forEach((p)=>p.classList.remove("displayNone"))
+
+      google.script.run.withSuccessHandler(updateColunas).getCards()
+    }
+
+    //Adicionando Event Listener nos Botões do Card View para chamar funcções do gs e após atualizando a card list
+
+    function moveCard(card,status,typeDate,date){
+      card.addEventListener("click", function(){
+        let dataCriacao = cardView.querySelector("#dataCriacao").textContent
+        google.script.run.withSuccessHandler(updateCardList).moveCard(dataCriacao,status,typeDate,date)
+      })
+    }
+
+    var botoes = cardView.querySelectorAll(".modal-footer button")
+    moveCard(botoes[1],"Iniciado","start",true)
+    moveCard(botoes[2],"Backlog","start",false)
+    moveCard(botoes[3],"Concluido","end",true)
+    moveCard(botoes[4],"Iniciado","end",false)
+
+
+    //Função para atualizar informações do card
+
+    function updateCardInfo(){
+      let infos = {
+        dataCriacao: cardView.querySelector("#dataCriacao").textContent,
+        titulo: cardView.querySelector("#cardViewTitulo").value,
+        descricao: cardView.querySelector("#cardViewDescricao").value
+      }
+      cardView.querySelector(".modal-title strong").textContent = infos.titulo
+
+      google.script.run.withSuccessHandler(updateCardList).updateCardInfo(infos)
+    }
+
+    //Função para deletrar um card
+
+    document.querySelector("#deleteCardBtn").addEventListener("click", function(){
+      confirmDelete.querySelector("#deleteCardDate").textContent = cardView.querySelector("#dataCriacao").textContent
+      confirmDelete.querySelector("#deleteCardTitle").textContent = cardView.querySelector("#cardViewTitulo").value
+    })
+    
+    function deleteCard(){
+      let dataCriacao = confirmDelete.querySelector("#deleteCardDate").textContent
+      google.script.run.withSuccessHandler(updateCardList).deleteCard(dataCriacao)
+    }
+
+    //Visibilidade de Campos do Modal Adicionar Card
+
+    document.querySelector("#agendarCalendario").addEventListener("click", function(){
+      if(document.querySelector("#agendarCalendario").checked) document.querySelector("#calendar").classList.remove("displayNone")
+      else document.querySelector("#calendar").classList.add("displayNone")
+    })
+
+    document.querySelector("#adicionarParticipantes").addEventListener("click", function(){
+      if(document.querySelector("#adicionarParticipantes").checked) document.querySelector("#guests").parentNode.classList.remove("displayNone")
+      else document.querySelector("#guests").parentNode.classList.add("displayNone")
+    })
+
+    //Função retorna um objeto com as respostas do Modal Adicionar Card
+
+    function getResponseAddCard(){
+      let res = {
+        titulo: document.querySelector("#cardTitulo").value,
+        descricao: document.querySelector("#cardDescricao").value,
+        agendado: document.querySelector("#agendarCalendario").checked,
+        start: document.querySelector("#start").value,
+        end: document.querySelector("#end").value,
+        participantes: document.querySelector("#adicionarParticipantes").checked,
+        guests: document.querySelector("#guests").value
+      }
+
+      return res
+    }
+
+    //Função valida os campos selecionados
+
+    function validate(e){
+      if(!e.value) e.classList.add("is-invalid")
+      else e.classList.remove("is-invalid")
+    }
+
+    //Função cria um Evento no Calendar se Selecionado, salva o card na planilha
+
+    function adicionarCard(){
+      let res = getResponseAddCard()
+
+      validate(document.querySelector("#cardTitulo"))
+      if(res.agendado){
+        validate(document.querySelector("#start"))
+        validate(document.querySelector("#end"))
+      }
+      else {
+        document.querySelector("#start").classList.remove("is-invalid")
+        document.querySelector("#end").classList.remove("is-invalid")
+      }
+      if(res.participantes) validate(document.querySelector("#guests"))
+      else document.querySelector("#guests").classList.remove("is-invalid")
+      
+      validate(document.querySelector("#cardTitulo"))
+
+      if(addCard.querySelector(".is-invalid")) return
+
+      if(res.agendado) google.script.run.createCalendar(res)
+      
+      google.script.run.withSuccessHandler(updateCardList).salvar(res)
+      
+      limpaModalAddCard()
+
+      addCardModal.hide()
+      
+    }
+
+    //Função limpa o Modal Adicionar Card
+
+    function limpaModalAddCard(){
+      document.querySelector("#cardTitulo").value = ""
+      document.querySelector("#cardDescricao").value = ""
+      document.querySelector("#agendarCalendario").checked = false
+      document.querySelector("#start").value = ""
+      document.querySelector("#end").value = ""
+      document.querySelector("#adicionarParticipantes").checked = false
+      document.querySelector("#guests").value = ""
+      document.querySelector("#calendar").classList.add("displayNone")
+      document.querySelector("#guests").parentNode.classList.add("displayNone")
+    }
+
+    // Funções para personalizar o tema da aplicação
+
+    document.querySelector("#Temas").addEventListener("click",startBackgrounds)
+    
+    function startBackgrounds(){
+      document.querySelector(".temas").innerHTML = ""
+      document.querySelector('.novo-tema').classList.add("displayNone")
+      editTheme.querySelector(".placeholder-glow").classList.remove("displayNone")
+      editThemeModal.show()
+      google.script.run.withSuccessHandler(getBackgrounds).getBackgroundList()
+    }
+
+    function getBackgrounds(bgs){
+      console.log(bgs)
+      editTheme.querySelector(".placeholder-glow").classList.add("displayNone")
+      
+      bgs.forEach((background)=>{
+        let url = background.bg.split('"'),
+        li = document.createElement("li")
+
+        li.classList.add("list-temas")
+        
+        let i = document.createElement("i")
+        i.classList.add("bi")
+        i.classList.add("bi-trash-fill")
+        i.classList.add("displayNone")
+        i.addEventListener("click",function(e){
+          let pai = i.parentNode
+          google.script.run.deleteBackground(pai.querySelector("span").textContent)
+          pai.parentNode.removeChild(pai)
+        })
+        li.appendChild(i)
+
+        if(background.active) li.classList.add("tema-active")
+
+        let img = document.createElement("img");
+
+        if(url.length > 1) img.src = url[1]
+        else img.style.background = background.bg
+
+        img.addEventListener("click", function(e){
+          let body = document.querySelector("body")
+          body.style.background = background.bg
+          body.style.backgroundSize = "100% 100%"
+          document.querySelectorAll(".list-temas").forEach((item)=>item.classList.remove("tema-active"))
+          li.classList.add("tema-active")
+        })
+
+        li.appendChild(img)
+
+        let span = document.createElement("span")
+        span.classList.add("displayNone")
+        span.textContent = background.bg
+        li.appendChild(span)
+
+        document.querySelector(".temas").appendChild(li)
+      })
+
+      let liPlus = document.createElement("li")
+      liPlus.classList.add("list-temas")
+      liPlus.addEventListener("click", function(){
+        document.querySelector('.novo-tema').classList.remove("displayNone")
+      })
+
+      let imgPlus = document.createElement("img");
+      imgPlus.src = "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSYzkmQsBniN0UHHSbVYxMDUrO-cHY_5LfzQQ&usqp=CAU"
+      liPlus.appendChild(imgPlus)
+
+      document.querySelector(".temas").appendChild(liPlus)
+    }
+
+    //Função para salvar o tema ativo na Planilha
+
+    function salvarTema(){
+      backToKanBam()
+      let temaAtivo = document.querySelector(".tema-active span").textContent
+      google.script.run.setBackground(temaAtivo)
+    }
+
+    //Função para habilitar os botões de apagar um tema
+
+    function apagarTema(){
+      document.querySelectorAll(".list-temas i").forEach((i)=>i.classList.remove("displayNone"))
+    }
+
+    //Funçôes para adicionar um tema
+
+    //Alterar entre cor ou url
+    document.querySelector("#url").addEventListener("click", function(){
+      document.querySelector('.novo-tema input[type="color"]').classList.add("displayNone")
+      document.querySelector('.novo-tema input[type="text"]').classList.remove("displayNone")
+    })
+
+    document.querySelector("#cor").addEventListener("click", function(){
+      document.querySelector('.novo-tema input[type="color"]').classList.remove("displayNone")
+      document.querySelector('.novo-tema input[type="text"]').classList.add("displayNone")
+    })
+
+    //Funções de Preview do novo tema
+
+    var previewTheme = document.querySelector(".previewTheme")
+
+    function updatePreview(e){
+      if(e.type == "text"){
+        let url = 'url("'+e.value+'") no-repeat'
+        previewTheme.style.background = url
+        previewTheme.style.backgroundSize = "100% 100%"
+        previewTheme.querySelector("span").textContent = url
+      } 
+      else{
+        previewTheme.style.background = e.value
+        previewTheme.querySelector("span").textContent = e.value
+      } 
+    }
+
+    previewTheme.addEventListener("click", usePreview)
+    
+    function usePreview(){
+      let body = document.querySelector("body")
+      body.style.background = previewTheme.querySelector("span").textContent
+      body.style.backgroundSize = "100% 100%"
+    }
+
+    //Função para criar um novo Tema
+    
+    function criarTema(use){
+      if(use) usePreview()
+      editThemeModal.hide()
+      backToKanBam()
+      document.querySelector('.novo-tema input[type="color"]').value = ""
+      document.querySelector('.novo-tema input[type="text"]').value = ""
+      previewTheme.style.background = "black"
+      google.script.run.createBackground(previewTheme.querySelector("span").textContent,use)
+    }
+    
+    //Função inicia consulta de Estatísticas
+
+    document.querySelector("#Estatísticas").addEventListener("click", function(){
+      stats.querySelector(".modal-body div").classList.add("displayNone")
+      stats.querySelector(".placeholder-glow").classList.remove("displayNone")
+      statsModal.show()
+      google.script.run.withSuccessHandler(getStats).getStats()
+    })
+
+    //Função puxa as Estatísticas e as exibe
+
+    function getStats(dados){
+
+      let dateDiff = (dateArray) => {
+        let dates = []
+        dateArray.forEach((date)=>{if(date) dates.push(new Date(date).getTime())})
+        let menorData = dates.reduce((a,b)=>{return Math.min(a, b)})
+
+        let diff = (new Date().getTime() - menorData)/1000
+        let res = ""
+
+        
+        
+        if(diff >= 18144000) res = Math.floor(diff / 18144000)+" Mês(es)."
+        else if(diff >= 604800) res = Math.floor(diff / 604800)+" Semana(s)."
+        else if(diff >= 86400) res = Math.floor(diff / 86400)+" Dia(s)."
+        else if(diff >= 3600) res = Math.floor(diff / 3600)+" Hora(s)."
+        else if(diff >= 60) res = Math.floor(diff / 3600)+" Minuto(s)."
+        else if(diff < 60) res = Math.floor(diff / 3600)+" Segundo(s)."
+
+        return {
+          res: res,
+          count: dates.length
+        }
+      }
+
+      let setStats = (elem,tipo,infos) => {
+        document.querySelector(elem).innerHTML = `${infos.count} ${tipo} no(s) último(s) ${infos.res}`
+      }
+
+      setStats("#cardCriados","Card(s) criado(s)",dateDiff(dados.criacao))
+      setStats("#cardIniciados","Card(s) iniciado(s)",dateDiff(dados.iniciados))
+      setStats("#cardFinalizados","Card(s) finalizado(s)",dateDiff(dados.finalizados))
+      setStats("#eventosCriados","Evento(s) criado(s)",dateDiff(dados.eventos))
+      setStats("#eventosWithGuestsCriados","Evento(s) criado(s) com participante(s)",dateDiff(dados.eventosWithGuests))
+
+      stats.querySelector(".modal-body div").classList.remove("displayNone")
+      stats.querySelector(".placeholder-glow").classList.add("displayNone")
+    }
+    
+</script>
