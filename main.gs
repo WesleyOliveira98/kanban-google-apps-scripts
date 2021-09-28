@@ -177,3 +177,11 @@ function deleteBackground(bg){
   }
 }
 
+
+function createBackground(bg,use){
+  let aba = planilha.getSheetByName("Temas")
+  aba.appendRow([bg,false])
+  
+  if(use) setBackground(bg)
+}
+

@@ -112,6 +112,9 @@
       .tema-active{
         box-shadow: 0 0 .4em green;
       }
+      .novo-tema div{
+        margin: 5px 0;
+      }
     </style>
   </head>
   <body style='background:<?!= bg ?>;background-size: 100% 100vh;'>
@@ -302,11 +305,36 @@
               <span class="placeholder col-10"></span>
             </p>
             <ul class="temas"></ul>
+            <div class="novo-tema displayNone" align="center">
+              <div>
+                <label>Adicionar novo Tema</label>
+              </div>
+              <div class="btn-group" role="group">
+                <button type="button" class="btn btn-secondary" id="cor">Cor</button>
+                <button type="button" class="btn btn-secondary" id="url" >URL</button>
+              </div>
+              <div>
+                <input type="color" class="form-control form-control-color" title="Escolha uma Cor" oninput="updatePreview(this)">
+              </div>
+              <div>
+                <input type="text" class="form-control displayNone" placeholder="Digite a URL da Imagem" oninput="updatePreview(this)">
+              </div>
+              <span>Clique abaixo para testar</span>
+              <div class="list-temas previewTheme" style="background: black" title="Clique para testar">
+                <span class="displayNone">black</span>
+              </div>
+              
+              <div>
+                <button type="button" class="btn btn-warning" onclick="criarTema(false)">Somente Salvar</button>
+                <button type="button" class="btn btn-success" onclick="criarTema(true)">Salvar e Usar</button>
+              </div>
+            </div>
+            
           </div>
           <div class="modal-footer">
             <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Voltar</button>
             <button type="button" class="btn btn-danger" onclick="apagarTema()">Apagar</button>
-            <button type="button" class="btn btn-success" data-bs-dismiss="modal" onclick="salvarTema()">Salvar</button>
+            <button type="button" class="btn btn-success" data-bs-dismiss="modal" onclick="salvarTema()">Salvar Alterações</button>
           </div>
         </div>
       </div>
@@ -538,12 +566,15 @@
 
       // Funções para personalizar o tema da aplicação
 
-      document.querySelector("#Temas").addEventListener("click",function (){
+      document.querySelector("#Temas").addEventListener("click",startBackgrounds)
+      
+      function startBackgrounds(){
         document.querySelector(".temas").innerHTML = ""
+        document.querySelector('.novo-tema').classList.add("displayNone")
         editTheme.querySelector(".placeholder-glow").classList.remove("displayNone")
         editThemeModal.show()
         google.script.run.withSuccessHandler(getBackgrounds).getBackgroundList()
-      })
+      }
 
       function getBackgrounds(bgs){
         console.log(bgs)
@@ -590,9 +621,21 @@
 
           document.querySelector(".temas").appendChild(li)
         })
+
+        let liPlus = document.createElement("li")
+        liPlus.classList.add("list-temas")
+        liPlus.addEventListener("click", function(){
+          document.querySelector('.novo-tema').classList.remove("displayNone")
+        })
+
+        let imgPlus = document.createElement("img");
+        imgPlus.src = "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSYzkmQsBniN0UHHSbVYxMDUrO-cHY_5LfzQQ&usqp=CAU"
+        liPlus.appendChild(imgPlus)
+
+        document.querySelector(".temas").appendChild(liPlus)
       }
 
-      //Função para salvar o tema ativo
+      //Função para salvar o tema ativo na Planilha
 
       function salvarTema(){
         document.querySelector(".menu-selected").classList.remove("menu-selected")
@@ -602,10 +645,60 @@
         google.script.run.setBackground(temaAtivo)
       }
 
+      //Função para habilitar os botões de apagar um tema
+
       function apagarTema(){
         document.querySelectorAll(".list-temas i").forEach((i)=>i.classList.remove("displayNone"))
       }
+
+      //Funçôes para adicionar um tema
+
+      //Alterar entre cor ou url
+      document.querySelector("#url").addEventListener("click", function(){
+        document.querySelector('.novo-tema input[type="color"]').classList.add("displayNone")
+        document.querySelector('.novo-tema input[type="text"]').classList.remove("displayNone")
+      })
+
+      document.querySelector("#cor").addEventListener("click", function(){
+        document.querySelector('.novo-tema input[type="color"]').classList.remove("displayNone")
+        document.querySelector('.novo-tema input[type="text"]').classList.add("displayNone")
+      })
+
+      //Funções de Preview do novo tema
+
+      var previewTheme = document.querySelector(".previewTheme")
+
+      function updatePreview(e){
+        if(e.type == "text"){
+          let url = 'url("'+e.value+'") no-repeat'
+          previewTheme.style.background = url
+          previewTheme.style.backgroundSize = "100% 100%"
+          previewTheme.querySelector("span").textContent = url
+        } 
+        else{
+          previewTheme.style.background = e.value
+          previewTheme.querySelector("span").textContent = e.value
+        } 
+      }
+
+      previewTheme.addEventListener("click", usePreview)
       
+      function usePreview(){
+        let body = document.querySelector("body")
+        body.style.background = previewTheme.querySelector("span").textContent
+        body.style.backgroundSize = "100% 100%"
+      }
+
+      //Função para criar um novo Tema
+      
+      function criarTema(use){
+        if(use) usePreview()
+        editThemeModal.hide()
+        document.querySelector('.novo-tema input[type="color"]').value = ""
+        document.querySelector('.novo-tema input[type="text"]').value = ""
+        previewTheme.style.background = "black"
+        google.script.run.createBackground(previewTheme.querySelector("span").textContent,use)
+      }
       
     </script>
     
