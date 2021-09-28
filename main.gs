@@ -185,3 +185,16 @@ function createBackground(bg,use){
   if(use) setBackground(bg)
 }
 
+
+
+function getStats(){
+  let dados = aba.getRange(2,1,aba.getLastRow(),11).getValues()
+  return {
+    criacao: dados.map(function(r){return r[0].toLocaleString("en-us")}),
+    iniciados: dados.map(function(r){return r[9].toLocaleString("en-us")}),
+    finalizados: dados.map(function(r){return r[10].toLocaleString("en-us")}),
+    eventos: dados.map(function(r){if(r[4]) return r[0].toLocaleString("en-us")}),
+    eventosWithGuests: dados.map(function(r){if(r[4] && r[7]) return r[0].toLocaleString("en-us")})
+  } 
+}
+

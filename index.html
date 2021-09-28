@@ -39,6 +39,7 @@
       }
       .btn-add-card button:hover,aside h1:hover{
         background: #c1c1c1;
+        cursor: pointer;
       }
       .cards{
         overflow: auto;
@@ -295,7 +296,7 @@
         <div class="modal-content">
           <div class="modal-header">
             <h5 class="modal-title" id="editThemeModalLabel"><strong>Editar Tema</strong></h5>
-            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close" onclick="backToKanBam()"></button>
           </div>
           <div class="modal-body">
             <span>Selecione um tema de sua preferência</span>
@@ -332,7 +333,7 @@
             
           </div>
           <div class="modal-footer">
-            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Voltar</button>
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" onclick="backToKanBam()">Voltar</button>
             <button type="button" class="btn btn-danger" onclick="apagarTema()">Apagar</button>
             <button type="button" class="btn btn-success" data-bs-dismiss="modal" onclick="salvarTema()">Salvar Alterações</button>
           </div>
@@ -340,22 +341,64 @@
       </div>
     </div>
 
-    
+    <div class="modal fade" id="statsModal" tabindex="-1" aria-labelledby="statsModalLabel" aria-hidden="true">
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title" id="statsModalLabel"><strong>Estatísticas</strong></h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close" onclick="backToKanBam()"></button>
+          </div>
+          <div class="modal-body">
+            <h6 class="placeholder-glow">
+              <span class="placeholder col-12"></span>
+              <span class="placeholder col-10"></span>
+              <span class="placeholder col-8"></span>
+            </h6>
+            <div class="displayNone">
+              <h6 id="cardCriados"></h6>
+              <h6 id="cardIniciados"></h6>
+              <h6 id="cardFinalizados"></h6>
+              <h6 id="eventosCriados"></h6>
+              <h6 id="eventosWithGuestsCriados"></h6>
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" onclick="backToKanBam()">Voltar</button>
+          </div>
+        </div>
+      </div>
+    </div>
     
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.1/dist/js/bootstrap.bundle.min.js" integrity="sha384-/bQdsTh/da6pkI1MST/rWKFNjaCP5gBSY4sEBT38Q/9RBh9AH40zEOg7Hlq2THRZ" crossorigin="anonymous"></script>
 
     <script type="text/javascript">
-      //Cria Modal Adicionar Card e Card View
+      //Ativa todos os Modals da aplicação
 
       var addCard = document.getElementById('addCardModal'),
       cardView = document.getElementById('cardViewModal'),
       confirmDelete = document.getElementById('confirmDeleteModal'),
-      editTheme = document.getElementById('editThemeModal')
+      editTheme = document.getElementById('editThemeModal'),
+      stats = document.getElementById('statsModal')
 
       var addCardModal = new bootstrap.Modal(addCard, { keyboard: false }),
       cardViewModal = new bootstrap.Modal(cardView, { keyboard: false }),
       confirmDeleteModal = new bootstrap.Modal(confirmDelete, { keyboard: false }),
-      editThemeModal = new bootstrap.Modal(editTheme, { keyboard: false })
+      editThemeModal = new bootstrap.Modal(editTheme, { keyboard: false, backdrop: 'static' }),
+      statsModal = new bootstrap.Modal(stats, { keyboard: false, backdrop: 'static' })
+
+      //Função para personalizar estilo do menu
+
+      document.querySelectorAll(".menu-item").forEach((menuItem)=>{
+        menuItem.addEventListener("click",function(){
+          document.querySelectorAll(".menu-item").forEach((item)=>{item.classList.remove("menu-selected")})
+          menuItem.classList.add("menu-selected")
+        })
+      })
+
+      function backToKanBam(){
+        document.querySelector(".menu-selected").classList.remove("menu-selected")
+        document.querySelector(".menu-item").classList.add("menu-selected")
+      }
 
       //Na inicialização da página, é feita a busca dos cards na Planilha
       google.script.run.withSuccessHandler(updateColunas).getCards()
@@ -553,17 +596,6 @@
         document.querySelector("#guests").parentNode.classList.add("displayNone")
       }
 
-
-      //Função para personalizar estilo do menu
-
-      document.querySelectorAll(".menu-item").forEach((menuItem)=>{
-        menuItem.addEventListener("click",function(){
-          document.querySelectorAll(".menu-item").forEach((item)=>{item.classList.remove("menu-selected")})
-          menuItem.classList.add("menu-selected")
-        })
-      })
-
-
       // Funções para personalizar o tema da aplicação
 
       document.querySelector("#Temas").addEventListener("click",startBackgrounds)
@@ -638,9 +670,7 @@
       //Função para salvar o tema ativo na Planilha
 
       function salvarTema(){
-        document.querySelector(".menu-selected").classList.remove("menu-selected")
-        document.querySelector(".menu-item").classList.add("menu-selected")
-
+        backToKanBam()
         let temaAtivo = document.querySelector(".tema-active span").textContent
         google.script.run.setBackground(temaAtivo)
       }
@@ -694,10 +724,61 @@
       function criarTema(use){
         if(use) usePreview()
         editThemeModal.hide()
+        backToKanBam()
         document.querySelector('.novo-tema input[type="color"]').value = ""
         document.querySelector('.novo-tema input[type="text"]').value = ""
         previewTheme.style.background = "black"
         google.script.run.createBackground(previewTheme.querySelector("span").textContent,use)
+      }
+
+      //Função inicia consulta de Estatísticas
+
+      document.querySelector("#Estatísticas").addEventListener("click", function(){
+        stats.querySelector(".modal-body div").classList.add("displayNone")
+        stats.querySelector(".placeholder-glow").classList.remove("displayNone")
+        statsModal.show()
+        google.script.run.withSuccessHandler(getStats).getStats()
+      })
+
+      //Função puxa as Estatísticas e as exibe
+
+      function getStats(dados){
+
+        let dateDiff = (dateArray) => {
+          let dates = []
+          dateArray.forEach((date)=>{if(date) dates.push(new Date(date).getTime())})
+          let menorData = dates.reduce((a,b)=>{return Math.min(a, b)})
+
+          let diff = (new Date().getTime() - menorData)/1000
+          let res = ""
+
+          
+          
+          if(diff >= 18144000) res = Math.floor(diff / 18144000)+" Mês(es)."
+          else if(diff >= 604800) res = Math.floor(diff / 604800)+" Semana(s)."
+          else if(diff >= 86400) res = Math.floor(diff / 86400)+" Dia(s)."
+          else if(diff >= 3600) res = Math.floor(diff / 3600)+" Hora(s)."
+          else if(diff >= 60) res = Math.floor(diff / 3600)+" Minuto(s)."
+          else if(diff < 60) res = Math.floor(diff / 3600)+" Segundo(s)."
+
+          return {
+            res: res,
+            count: dates.length
+          }
+        }
+
+        let setStats = (elem,tipo,infos) => {
+          document.querySelector(elem).innerHTML = `${infos.count} ${tipo} no(s) último(s) ${infos.res}`
+        }
+
+        setStats("#cardCriados","Card(s) criado(s)",dateDiff(dados.criacao))
+        setStats("#cardIniciados","Card(s) iniciado(s)",dateDiff(dados.iniciados))
+        setStats("#cardFinalizados","Card(s) finalizado(s)",dateDiff(dados.finalizados))
+        setStats("#eventosCriados","Evento(s) criado(s)",dateDiff(dados.eventos))
+        setStats("#eventosWithGuestsCriados","Evento(s) criado(s) com participante(s)",dateDiff(dados.eventosWithGuests))
+
+        stats.querySelector(".modal-body div").classList.remove("displayNone")
+        stats.querySelector(".placeholder-glow").classList.add("displayNone")
       }
       
     </script>
