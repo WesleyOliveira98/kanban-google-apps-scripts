@@ -1,17 +1,23 @@
 <!DOCTYPE html>
 <html>
   <head>
+    <!-- Tags essenciais do Meta -->
     <meta charset="UTF-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
+    <!-- Bootstrap CSS e Fonts -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.1/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-F3w7mX95PdgyTmZZMECAngseQB83DfGTowi0iMjiWaeVhAn4FJkqJByhZMI3AhiU" crossorigin="anonymous">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.5.0/font/bootstrap-icons.css">
 
+    <!-- Os scriptlets do Google Apps Scrips pemitem que usamos Javascript dentro do nosso HTML, nesse caso usamos a nossa função google script "include" para retonar nosso CSS -->
     <?!= include("css") ?>
   </head>
+
+  <!--Aqui usamos os scriptlets para trazer a propriedade "bg" que adicionamos a nossa template -->
   <body style='background:<?!= bg ?>;background-size: 100% 100vh;'>
     
+    <!-- Colunas que recebem os cards -->
     <div class="container">
       <div class="row">
         <div class="col-md-4">
@@ -64,12 +70,16 @@
       </div>
     </div>
 
+    <!-- Menu Lateral -->
     <aside>
       <h1 class="menu-item menu-selected" title="Kanban" id="Kanban"><i class="bi bi-kanban-fill"></i></h1>
       <h1 class="menu-item" title="Temas" id="Temas"><i class="bi bi-palette-fill"></i></h1>
       <h1 class="menu-item" title="Estatísticas" id="Estatísticas"><i class="bi bi-graph-up"></i></h1>
     </aside>
 
+    <!-- Uso de Bootstrap Modal -->
+
+    <!-- Modal para Adicionar um novo Card -->
     <div class="modal fade" id="addCardModal" tabindex="-1" aria-labelledby="addCardLabel" aria-hidden="true">
       <div class="modal-dialog">
         <div class="modal-content">
@@ -126,7 +136,7 @@
       </div>
     </div>
 
-
+    <!-- Modal para visualizar as informações de um Card -->
     <div class="modal fade" id="cardViewModal" tabindex="-1" aria-labelledby="cardViewLabel" aria-hidden="true">
       <div class="modal-dialog">
         <div class="modal-content">
@@ -165,6 +175,7 @@
       </div>
     </div>
 
+    <!-- Modal para confirmar a exclusão de um Card -->
     <div class="modal fade" id="confirmDeleteModal" tabindex="-1" aria-labelledby="confirmDeleteModalLabel" aria-hidden="true">
       <div class="modal-dialog">
         <div class="modal-content">
@@ -184,6 +195,7 @@
       </div>
     </div>
 
+    <!-- Modal para personalizar o tema da aplicação -->
     <div class="modal fade" id="editThemeModal" tabindex="-1" aria-labelledby="editThemeModalLabel" aria-hidden="true">
       <div class="modal-dialog">
         <div class="modal-content">
@@ -234,6 +246,7 @@
       </div>
     </div>
 
+    <!-- Modal para visualizar as estatisticas dos Cards -->
     <div class="modal fade" id="statsModal" tabindex="-1" aria-labelledby="statsModalLabel" aria-hidden="true">
       <div class="modal-dialog">
         <div class="modal-content">
@@ -262,8 +275,10 @@
       </div>
     </div>
     
+    <!-- Bootstrap JS -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.1/dist/js/bootstrap.bundle.min.js" integrity="sha384-/bQdsTh/da6pkI1MST/rWKFNjaCP5gBSY4sEBT38Q/9RBh9AH40zEOg7Hlq2THRZ" crossorigin="anonymous"></script>
 
+    <!-- Novamente o uso dos scriptlets do Google para retornarmos o conteúdo do aruqivo "js" através da função "include" -->
     <?!= include("js") ?>
     
   </body>

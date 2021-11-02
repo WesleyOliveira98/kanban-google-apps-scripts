@@ -1,19 +1,28 @@
+//Função doGet é padrão do Google para inicialização da sua aplicação através do link implantado
 function doGet(){
   var bg = getBackgroundActive()
 
+  //Cria template através do arquivo index.html
   var template = HtmlService.createTemplateFromFile('index')
+
+  //Essa template é um objeto e pode receber propriedades que será carregadas na aplicação e você conseguirá usar o scriptlets do Google para fazer interpolação de dados em seu HTML
   template.bg = bg
+
+  //Retorna a template permitando que ela será colocada em um iframe
   return template.evaluate().setXFrameOptionsMode(HtmlService.XFrameOptionsMode.ALLOWALL)
 }
 
+//Função que permite incluir arquivos HTML ao seu index, usamos ela para separar o CSS e o Javascript do HTML
 function include(filename){
   return HtmlService.createHtmlOutputFromFile(filename).getContent()
 }
 
-
-var planilha = SpreadsheetApp.openById("1fzAksn4JUiWXo3D8EqwKblJrNKaxgL_eLy3S8cxB_nc")
+//Variaveis globais com as informações da sua planilha
+var planilha = SpreadsheetApp.openByUrl("https://docs.google.com/spreadsheets/d/1Oo0wQBHwNjy9TUXkvpJKeWcozGXW20EJY7uJu0Dkjn0/edit#gid=0")
 var aba = planilha.getSheetByName("Cards")
 
+
+//Função puxa informações dos cards lá na nossa planilha
 function getCards(){
   var dados = aba.getRange(1,1,aba.getLastRow(),11).getValues()
 
@@ -60,6 +69,7 @@ function getCards(){
   return cards
 }
 
+//Função encontra em qual linha está o nosso card
 function findRow(dataCriacao){
   var dados = aba.getRange(1,1,aba.getLastRow(),1).getValues()
 
@@ -71,6 +81,7 @@ function findRow(dataCriacao){
   return row
 }
 
+//Função "movimenta" o card de coluna
 function moveCard(dataCriacao,status,typeDate,date){
   var row = findRow(dataCriacao)
 
@@ -84,6 +95,7 @@ function moveCard(dataCriacao,status,typeDate,date){
   aba.getRange(row,column).setValue(data) 
 }
 
+//Função para criar evento no Google Calendar
 function createCalendar(infos){
   CalendarApp.getDefaultCalendar().createEvent(infos.titulo,
   new Date(infos.start),
@@ -93,7 +105,7 @@ function createCalendar(infos){
   sendInvites: true});
 }
 
-
+//Função para salvar um novo card
 function salvar(infos){
   let inicioEvento = ""
   let fimEvento = ""
@@ -112,7 +124,7 @@ function salvar(infos){
   infos.guests])
 }
 
-
+//Função para atualizar os dados do card
 function updateCardInfo(infos){
   row = findRow(infos.dataCriacao)
 
@@ -120,12 +132,13 @@ function updateCardInfo(infos){
   aba.getRange(row,3).setValue(infos.descricao)
 }
 
-
+//Função para deletar um card da planilha
 function deleteCard(dataCriacao){
   row = findRow(dataCriacao)
   aba.deleteRow(row)
 }
 
+//Função puxa as estatisticas dos cards
 function getStats(){
   let dados = aba.getRange(2,1,aba.getLastRow(),11).getValues()
   return {
@@ -137,7 +150,7 @@ function getStats(){
   } 
 }
 
-
+//Função busca o tema que está ativo
 function getBackgroundActive(){
   let aba = planilha.getSheetByName("Temas"),
   dados = aba.getRange(1,1,aba.getLastRow(),2).getValues(),
@@ -153,7 +166,7 @@ function getBackgroundActive(){
   return background
 }
 
-
+//Função retorna a lista de temas salvos na planilha
 function getBackgroundList(){
   let aba = planilha.getSheetByName("Temas"),
   dados = aba.getRange(1,1,aba.getLastRow(),2).getValues(),
@@ -170,6 +183,7 @@ function getBackgroundList(){
   return res
 }
 
+//Função salva um tema como tema ativo
 function setBackground(bgActive){
   let aba = planilha.getSheetByName("Temas"),
   dados = aba.getRange(1,1,aba.getLastRow(),1).getValues()
@@ -182,6 +196,7 @@ function setBackground(bgActive){
   }
 }
 
+//Função apaga um tema da planilha
 function deleteBackground(bg){
   let aba = planilha.getSheetByName("Temas"),
   dados = aba.getRange(1,1,aba.getLastRow(),1).getValues()
@@ -193,7 +208,7 @@ function deleteBackground(bg){
   }
 }
 
-
+//Função adiciona um novo tema e salva como tema ativo
 function createBackground(bg,use){
   let aba = planilha.getSheetByName("Temas")
   aba.appendRow([bg,false])
