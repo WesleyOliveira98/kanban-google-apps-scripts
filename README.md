@@ -5,16 +5,16 @@
 <h1 align="center">Tecnologias Utilizadas</h1>
 
 <ul>
-    <li>Google Apps Scripts</li>
-    <li>Google Spreadsheets</li>
-    <li>Google Calendar</li>
-    <li>Bootstrap</li>
-    <li>HTML</li>
+    <li><a href="https://developers.google.com/apps-script">Google Apps Scripts</a></li>
+    <li><a href="https://www.google.com/sheets/about/">Google Spreadsheets</a></li>
+    <li><a href="https://www.google.com/calendar/about/">Google Calendar</a></li>
+    <li><a href="https://getbootstrap.com/">Bootstrap</a></li>
+    <li>HTML5</li>
     <li>CSS</li>
     <li>Javascript</li>
 </ul>
 
 <h1 align="center">Demo</h1>
 
-<p><a target="_blank" href="https://wesleyoliveira98.github.io/javascript-alura/">Clique aqui</a> para visualizar a demo.</p>
+<p><a target="_blank" href="https://wesleyoliveira98.github.io/kanban-google-apps-scripts/">Clique aqui</a> para visualizar a demo.</p>
 <p><a target="_blank" href="https://docs.google.com/spreadsheets/d/1Oo0wQBHwNjy9TUXkvpJKeWcozGXW20EJY7uJu0Dkjn0/edit?usp=sharing">Clique aqui</a> para visualizar o projeto dentro do Google, o link irá te encaminhar para a planilha, faça uma cópia da mesma, vá em Ferramentas > Editor de script. Após isso, altere o link da planilha na linha 14 do main.gs para o link da sua planilha de cópia, salve e faça uma implantação, autorize a aplicação, e conseguirá ver o link do seu Kanban Web App, caso queira limpar os dados de exemplo você pode apagar pela planilha ou pelo próprio sistema</p>
