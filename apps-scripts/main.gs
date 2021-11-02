@@ -8,8 +8,10 @@ function doGet(){
   //Essa template é um objeto e pode receber propriedades que será carregadas na aplicação e você conseguirá usar o scriptlets do Google para fazer interpolação de dados em seu HTML
   template.bg = bg
 
-  //Retorna a template permitando que ela será colocada em um iframe
-  return template.evaluate().setXFrameOptionsMode(HtmlService.XFrameOptionsMode.ALLOWALL)
+  //Retorna a template, setando o titulo e permitando que ela será colocada em um iframe
+  return template.evaluate()
+    .setTitle("Kanban Web App")
+    .setXFrameOptionsMode(HtmlService.XFrameOptionsMode.ALLOWALL)
 }
 
 //Função que permite incluir arquivos HTML ao seu index, usamos ela para separar o CSS e o Javascript do HTML
